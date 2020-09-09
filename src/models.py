@@ -5,8 +5,7 @@ db = SQLAlchemy()
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(80), unique=False, nullable=False)
-    is_active = db.Column(db.Boolean(), unique=False, nullable=False)
+
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -18,9 +17,25 @@ class User(db.Model):
             # do not serialize the password, its a security breach
         }
 
+
+
+enrollment = db.Table('enrollment',
+    db.Column('courses_id', db.Integer, db.ForeignKey('courses.id'), primary_key=True),
+    db.Column('student_id', db.Integer, db.ForeignKey('student.id'), primary_key=True)
+)
+
+
 class Courses(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     kotokan_id = db.Column(db.String(120), unique=True, nullable=False)
+    name=db.Column(db.String(120), unique=True, nullable=False)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship("User")
+
+    student = db.relationship("Student", secondary=enrollment, back_populates="courses")
+
+        
 
 
     def __repr__(self):
@@ -33,13 +48,40 @@ class Courses(db.Model):
             # do not serialize the password, its a security breach
         }
 
-class Student(db.Model):
+"""class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     kotokan_id = db.Column(db.String(120), unique=True, nullable=False)
-  
+    name=db.Column(db.String(120), unique=True, nullable=False)
+
+    courses = db.relationship("Courses", secondary=enrollment, back_populates="student")
+
+        
+
 
     def __repr__(self):
-        return '<Student %r>' % self.username
+        return '<Courses %r>' % self.username
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "kotokan_id": self.kotokan_id,
+            # do not serialize the password, its a security breach
+        }
+"""
+
+
+class GameStatus(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    kotokan_id = db.Column(db.String(120), unique=True, nullable=False)
+    name=db.Column(db.String(120), unique=True, nullable=False)
+
+    enrollment= db.relationship("enrollment")
+
+        
+
+
+    def __repr__(self):
+        return '<Courses %r>' % self.username
 
     def serialize(self):
         return {
@@ -48,36 +90,6 @@ class Student(db.Model):
             # do not serialize the password, its a security breach
         }
 
-class Enrollment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    course_id = db.Column(db.Integer, unique=True, nullable=False)
-    student_id = db.Column(db.Integer, unique=False, nullable=False)
- 
 
-    def __repr__(self):
-        return '<Enrollment %r>' % self.username
 
-    def serialize(self):
-        return {
-            "id": self.id,
-            "course": self.course_id,
-            "student":self.student_id
-            # do not serialize the password, its a security breach
-        }
 
-class GameStatus(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    kotokan_id = db.Column(db.String(120), unique=True, nullable=False)
-    created_at = """db.Column(db.Integer, unique=False, nullable=False)"""
-    data="""db.Column(db.json, unique=True, nullable=False)"""
- 
-
-    def __repr__(self):
-        return '<Enrollment %r>' % self.username
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "email": self.email,
-            # do not serialize the password, its a security breach
-        }
